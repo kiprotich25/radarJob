@@ -1,0 +1,112 @@
+@import 'tailwindcss';
+
+/*
+ * RadarJob design tokens.
+ * Civic, public-notice sobriety: cool neutral paper, navy ink, one restrained
+ * signal blue. Risk colours are always paired with an icon shape and a label.
+ */
+@theme {
+  --font-sans: 'Public Sans Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --color-paper: #f4f6f8;
+  --color-surface: #ffffff;
+  --color-ink: #13213c;
+  --color-ink-soft: #475467;
+  --color-ink-faint: #667085;
+  --color-rule: #d5dce4;
+  --color-rule-strong: #aab4c0;
+
+  --color-signal: #1d5fc4;
+  --color-signal-ink: #123f86;
+  --color-signal-wash: #eaf1fb;
+
+  --color-danger: #b42318;
+  --color-danger-wash: #fef3f2;
+  --color-caution: #b54708;
+  --color-caution-wash: #fffaeb;
+  --color-positive: #067647;
+  --color-positive-wash: #ecfdf3;
+  --color-unknown: #475467;
+  --color-unknown-wash: #f2f4f7;
+
+  --radius-control: 0.5rem;
+  --radius-panel: 0.75rem;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: 'tnum' 0;
+    line-height: 1.55;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    letter-spacing: -0.015em;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-signal);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  ::selection {
+    background: var(--color-signal-wash);
+    color: var(--color-ink);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .prose-rj {
+    max-width: 68ch;
+  }
+  .prose-rj p + p {
+    margin-top: 0.85rem;
+  }
+  .prose-rj ul {
+    list-style: disc;
+    padding-left: 1.25rem;
+  }
+  .prose-rj li + li {
+    margin-top: 0.35rem;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* The radar sweep on the hero mark: the one decorative motion on the site. */
+@keyframes rj-sweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.rj-sweep {
+  transform-origin: 50% 50%;
+  animation: rj-sweep 6s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rj-sweep {
+    animation: none;
+  }
+}

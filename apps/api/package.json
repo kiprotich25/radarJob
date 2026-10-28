@@ -1,0 +1,49 @@
+{
+  "name": "@radarjob/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "pnpm db:generate && nest build",
+    "dev": "pnpm db:generate && nest start --watch",
+    "start": "node dist/main.js",
+    "typecheck": "pnpm db:generate && tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "pnpm db:generate && vitest run",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:migrate:dev": "prisma migrate dev"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.2.8",
+    "@nestjs/core": "^11.2.8",
+    "@nestjs/platform-express": "^11.2.8",
+    "@nestjs/throttler": "^6.7.1",
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1",
+    "@radarjob/shared": "workspace:*",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "helmet": "^8.3.0",
+    "ipaddr.js": "^2.5.0",
+    "node-html-parser": "^9.0.5",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "tldts": "^7.0.19",
+    "undici": "^8.12.3",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.24",
+    "@nestjs/testing": "^11.2.8",
+    "@swc/core": "^1.16.20",
+    "@types/express": "^5.0.3",
+    "@types/node": "^22.18.0",
+    "@types/supertest": "^7.2.1",
+    "dotenv": "^17.2.3",
+    "prisma": "7.10.1",
+    "supertest": "^7.3.1",
+    "typescript": "^5.9.3",
+    "unplugin-swc": "^2.0.0",
+    "vitest": "^3.2.4"
+  }
+}

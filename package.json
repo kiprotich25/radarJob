@@ -1,0 +1,30 @@
+{
+  "name": "radarjob",
+  "private": true,
+  "version": "0.1.0",
+  "description": "RadarJob — spot the scam before it costs you. Job-scam awareness and link verification PWA.",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "build:shared": "pnpm --filter @radarjob/shared build",
+    "dev": "pnpm build:shared && pnpm -r --parallel --filter @radarjob/api --filter @radarjob/web --filter @radarjob/shared dev",
+    "dev:api": "pnpm build:shared && pnpm --filter @radarjob/api dev",
+    "dev:web": "pnpm build:shared && pnpm --filter @radarjob/web dev",
+    "build": "pnpm build:shared && pnpm --filter @radarjob/api build && pnpm --filter @radarjob/web build",
+    "start": "pnpm -r --parallel --filter @radarjob/api --filter @radarjob/web start",
+    "typecheck": "pnpm build:shared && pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "test": "pnpm build:shared && pnpm -r test",
+    "test:e2e": "pnpm --filter @radarjob/web test:e2e",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:migrate": "pnpm --filter @radarjob/api db:migrate",
+    "db:generate": "pnpm --filter @radarjob/api db:generate"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3"
+  }
+}
