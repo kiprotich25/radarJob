@@ -70,7 +70,13 @@ export class AnthropicClient implements LlmClient {
   }
 }
 
-/** Any OpenAI-compatible Chat Completions endpoint (OpenAI, Azure OpenAI proxies, local servers). */
+export interface OpenAiCompatibleOptions {
+  reasoningEffort?: 'low' | 'medium' | 'high';
+  /** Added to max_tokens for models whose thinking tokens count against that limit. */
+  extraMaxTokens?: number;
+}
+
+/** Any OpenAI-compatible Chat Completions endpoint (OpenAI, Gemini, Azure OpenAI proxies, local servers). */
 export class OpenAiCompatibleClient implements LlmClient {
   readonly providerName = 'OpenAI-compatible';
   constructor(
@@ -79,6 +85,7 @@ export class OpenAiCompatibleClient implements LlmClient {
     private readonly baseUrl: string,
     private readonly fetchImpl: FetchLike,
     private readonly timeoutMs: number,
+    private readonly options: OpenAiCompatibleOptions = {},
   ) {}
 
   async complete(req: LlmRequest): Promise<string> {
@@ -90,8 +97,11 @@ export class OpenAiCompatibleClient implements LlmClient {
         headers: { 'content-type': 'application/json', authorization: `Bearer ${this.apiKey}` },
         body: JSON.stringify({
           model: this.model,
-          max_tokens: req.maxTokens,
+          max_tokens: req.maxTokens + (this.options.extraMaxTokens ?? 0),
           temperature: 0,
+          ...(this.options.reasoningEffort
+            ? { reasoning_effort: this.options.reasoningEffort }
+            : {}),
           response_format: { type: 'json_object' },
           messages: [
             { role: 'system', content: req.system },

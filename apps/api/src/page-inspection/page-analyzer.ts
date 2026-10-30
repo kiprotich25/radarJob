@@ -3,6 +3,7 @@ import { parse as parseDomain } from 'tldts';
 import type { Indicator } from '@radarjob/shared';
 import { cleanText, redactPersonalData } from '../common/redact';
 import { BRANDS } from '../url-analysis/brands';
+import { isGovernmentDomain, isOfficial } from '../url-analysis/url-heuristics';
 
 /**
  * Static analysis of fetched HTML. Nothing is executed: scripts and styles are
@@ -123,12 +124,7 @@ export function pageIndicators(
     (b) =>
       b.tokens.some(
         (t) => t.length > 4 && titleLower.replace(/\s+/g, '').includes(t.replace(/-/g, '')),
-      ) &&
-      !(
-        registeredDomain &&
-        (b.official.includes(registeredDomain) ||
-          (b.officialSuffix && registeredDomain.endsWith(b.officialSuffix)))
-      ),
+      ) && !isOfficial(b, registeredDomain),
   );
   if (claimed) {
     add({
@@ -144,7 +140,29 @@ export function pageIndicators(
     });
   }
 
-  const impersonating = impersonatedBrands.length > 0 || Boolean(claimed);
+  // Page presents itself as Kenyan government on a domain that is not a government one.
+  const claimsGovernment =
+    !claimed &&
+    !isGovernmentDomain(registeredDomain) &&
+    /government of kenya|republic of kenya|kenya government|county government of|ministry of .*kenya/.test(
+      titleLower,
+    );
+  if (claimsGovernment) {
+    add({
+      dimension: 'link',
+      category: 'page_government_mismatch',
+      title: 'The page title presents itself as Kenyan government, but the site is not on .go.ke',
+      evidence: `Title: "${facts.title}"`,
+      whyItMatters:
+        'Kenyan government websites are expected to use the .go.ke ending. Fake recruitment sites copy government names to look official.',
+      basis: 'observed',
+      severity: 'moderate',
+      limitations:
+        'This is a warning sign, not proof of fraud. News sites and job boards legitimately mention government bodies in page titles, and some public bodies use other endings such as .or.ke or .ac.ke.',
+    });
+  }
+
+  const impersonating = impersonatedBrands.length > 0 || Boolean(claimed) || claimsGovernment;
   if (facts.passwordFields > 0) {
     add({
       dimension: 'link',

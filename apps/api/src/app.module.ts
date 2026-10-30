@@ -83,8 +83,9 @@ export function buildDomainIntel(env: Env, fetchImpl: FetchLike): DomainIntelPro
 
 export function buildAi(env: Env, fetchImpl: FetchLike): AiService {
   let client: LlmClient | null = null;
+  // `||` because .env.example leaves AI_MODEL blank, which arrives as an empty string.
   const model =
-    env.AI_MODEL ?? (env.AI_PROVIDER !== 'none' ? DEFAULT_MODELS[env.AI_PROVIDER] : undefined);
+    env.AI_MODEL || (env.AI_PROVIDER !== 'none' ? DEFAULT_MODELS[env.AI_PROVIDER] : undefined);
   if (env.AI_PROVIDER === 'anthropic' && env.ANTHROPIC_API_KEY && model) {
     client = new AnthropicClient(env.ANTHROPIC_API_KEY, model, fetchImpl, env.AI_TIMEOUT_MS);
     return new AiService(client, 'configured', `Anthropic (${model})`);
@@ -98,6 +99,18 @@ export function buildAi(env: Env, fetchImpl: FetchLike): AiService {
       env.AI_TIMEOUT_MS,
     );
     return new AiService(client, 'configured', `OpenAI-compatible (${model})`);
+  }
+  if (env.AI_PROVIDER === 'gemini' && env.GEMINI_API_KEY && model) {
+    // Gemini 3 thinking cannot be disabled, so keep it low and leave room for the JSON answer.
+    client = new OpenAiCompatibleClient(
+      env.GEMINI_API_KEY,
+      model,
+      'https://generativelanguage.googleapis.com/v1beta/openai',
+      fetchImpl,
+      env.AI_TIMEOUT_MS,
+      { reasoningEffort: 'low', extraMaxTokens: 2048 },
+    );
+    return new AiService(client, 'configured', `Gemini (${model})`);
   }
   if (env.DEV_MOCK_PROVIDERS)
     return new AiService(new MockLlmClient(), 'mock', 'Mock AI (development only)');

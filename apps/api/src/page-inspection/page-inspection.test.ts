@@ -209,6 +209,23 @@ describe('safeFetch against a local test server', () => {
 });
 
 describe('page analyzer', () => {
+  const mismatchesFor = (title: string, domain: string) =>
+    pageIndicators(extractPageFacts(`<title>${title}</title>`, domain), domain, []).map(
+      (i) => i.category,
+    );
+
+  it('flags a page claiming to be Kenyan government outside .go.ke', () => {
+    expect(mismatchesFor('Republic of Kenya - Job Portal', 'jobs-portal.example')).toEqual([
+      'page_government_mismatch',
+    ]);
+    expect(mismatchesFor('Republic of Kenya - Job Portal', 'labour.go.ke')).toEqual([]);
+  });
+
+  it('does not accept a domain that merely ends in the letters go.ke', () => {
+    expect(mismatchesFor('eCitizen careers', 'fake-go.ke')).toEqual(['page_brand_mismatch']);
+    expect(mismatchesFor('eCitizen careers', 'ecitizen.go.ke')).toEqual([]);
+  });
+
   it('treats a password field on a non-impersonating site as weak', () => {
     const facts = extractPageFacts(
       '<title>Acme Applicant Portal</title><form><input type="password"></form>',

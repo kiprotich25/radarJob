@@ -92,7 +92,31 @@ export function hasMixedScripts(label: string): boolean {
   return scripts.size > 1;
 }
 
-function isOfficial(brand: Brand, registeredDomain: string | null): boolean {
+/** Government-only endings: .go.ke and foreign equivalents such as .gov, .gov.uk or .go.ug. */
+export function isGovernmentDomain(registeredDomain: string | null): boolean {
+  return Boolean(
+    registeredDomain &&
+    /\.(gov|mil)$|\.(gov|govt|go|gob|gouv|mil)\.[a-z]{2}$/.test(registeredDomain),
+  );
+}
+
+/** Does the address present itself as Kenyan government? `text` is the hostname without its public suffix. */
+function looksLikeKenyanGovernment(host: string, text: string, suffix: string): boolean {
+  if (/(^|[.\-_])gov?[.\-_]ke([.\-_]|$)/.test(host)) return true;
+  const segments = text.split(/[.\-_]/);
+  if (segments.some((s) => ['gov', 'govt', 'government', 'serikali'].includes(s))) return true;
+  const compact = segments.join('');
+  if (/govke|govkenya|kenyagov|governmentofkenya|republicofkenya/.test(compact)) return true;
+  const kenyan = compact.includes('kenya') || suffix === 'ke' || suffix.endsWith('.ke');
+  return (
+    kenyan &&
+    (compact.includes('ministryof') ||
+      compact.includes('countygov') ||
+      segments.some((s) => s.endsWith('county')))
+  );
+}
+
+export function isOfficial(brand: Brand, registeredDomain: string | null): boolean {
   if (!registeredDomain) return false;
   if (brand.official.includes(registeredDomain)) return true;
   if (
@@ -214,6 +238,8 @@ export function analyzeUrlStructure(u: NormalizedUrl): UrlHeuristicsResult {
       }
       if (inSld) {
         const exactName = brand.tokens.some((t) => sld.replace(/-/g, '') === t.replace(/-/g, ''));
+        // A government body's exact name on another ending is still a warning: .go.ke is expected.
+        const weakSignal = exactName && !brand.officialSuffix;
         impersonated.add(brand.name);
         out.push(
           ind({
@@ -224,8 +250,8 @@ export function analyzeUrlStructure(u: NormalizedUrl): UrlHeuristicsResult {
             evidence: reg,
             whyItMatters: `Scammers register domains combining a trusted name with words like "careers" or "jobs", or the same name with a different ending. Known official domains for ${brand.name} include ${brand.official.length ? brand.official.join(', ') : `domains under .${brand.officialSuffix}`}.`,
             basis: 'inferred',
-            severity: exactName ? 'weak' : 'moderate',
-            limitations: exactName
+            severity: weakSignal ? 'weak' : 'moderate',
+            limitations: weakSignal
               ? "Large organisations often own country-specific versions of their domain that are not in RadarJob's partial list."
               : "RadarJob's list of official domains is partial. Fan sites, partners or recently launched official sites can trigger this signal.",
           }),
@@ -254,6 +280,28 @@ export function analyzeUrlStructure(u: NormalizedUrl): UrlHeuristicsResult {
           );
         }
       }
+    }
+
+    const governmentBrandFlagged = BRANDS.some((b) => b.officialSuffix && impersonated.has(b.name));
+    if (
+      !isGovernmentDomain(reg) &&
+      !governmentBrandFlagged &&
+      looksLikeKenyanGovernment(host, subdomain ? `${subdomain}.${sld}` : sld, suffix)
+    ) {
+      impersonated.add('Government of Kenya');
+      out.push(
+        ind({
+          category: 'government_not_go_ke',
+          title: 'The address looks like a Kenyan government site, but does not end in .go.ke',
+          evidence: host,
+          whyItMatters:
+            'Kenyan government websites are expected to use the .go.ke ending. Scammers use government-sounding addresses to make fake recruitment look official.',
+          basis: 'inferred',
+          severity: 'moderate',
+          limitations:
+            'This is a warning sign, not proof of fraud. Some public bodies use other endings, such as .or.ke or .ac.ke, and private job boards may mention government in their address. Confirm through the organisation’s official channels.',
+        }),
+      );
     }
   }
 

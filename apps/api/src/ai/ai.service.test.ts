@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { Assessment } from '@radarjob/shared';
+import { fakeFetch, jsonResponse } from '../../test/fake-fetch';
+import { buildAi } from '../app.module';
 import { ProviderError } from '../common/provider-error';
+import { loadEnv } from '../config/env';
 import { AiService, extractJson } from './ai.service';
 import type { LlmClient, LlmRequest } from './llm-client';
 import { wrapUntrusted } from './prompts';
@@ -37,6 +40,36 @@ const assessment: Assessment = {
   conflicts: [],
   rulesVersion: 't',
 };
+
+describe('Gemini provider', () => {
+  const answer = () =>
+    jsonResponse(200, {
+      choices: [{ message: { content: JSON.stringify({ indicators: [] }) } }],
+    });
+
+  it('calls the OpenAI-compatible endpoint with low thinking and token headroom', async () => {
+    const f = fakeFetch(answer);
+    // AI_MODEL is blank, as it is in .env.example.
+    const env = loadEnv({ AI_PROVIDER: 'gemini', GEMINI_API_KEY: 'test-key', AI_MODEL: '' });
+    const r = await buildAi(env, f).analyzeUrl(urlInput);
+
+    expect(r.status).toBe('completed');
+    expect(f.calls[0].url).toBe(
+      'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+    );
+    expect(f.calls[0].init?.headers).toMatchObject({ authorization: 'Bearer test-key' });
+    expect(JSON.parse(String(f.calls[0].init?.body))).toMatchObject({
+      model: 'gemini-3.8-flash',
+      reasoning_effort: 'low',
+      max_tokens: 2948,
+    });
+  });
+
+  it('is not configured without a key', () => {
+    const env = loadEnv({ AI_PROVIDER: 'gemini' });
+    expect(buildAi(env, fakeFetch()).configured).toBe(false);
+  });
+});
 
 describe('extractJson', () => {
   it('handles code fences and surrounding text', () => {

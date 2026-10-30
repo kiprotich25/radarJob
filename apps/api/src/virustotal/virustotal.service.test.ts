@@ -118,6 +118,23 @@ describe('VirusTotalService', () => {
     expect(r.message).toMatch(/not a clean result/);
   });
 
+  it('polls soon after submitting, then backs off up to the configured interval', async () => {
+    const delays: number[] = [];
+    const f = fakeFetch(
+      (u) => (isLookup(u) ? jsonResponse(404, {}) : undefined),
+      (u, i) => (isSubmit(u, i) ? jsonResponse(200, vtFixtures.submission) : undefined),
+      (u) => (isPoll(u) ? jsonResponse(200, vtFixtures.analysis('queued')) : undefined),
+    );
+    await svc(f, {
+      pollAttempts: 4,
+      pollIntervalMs: 15000,
+      sleep: async (ms) => {
+        delays.push(ms);
+      },
+    }).check(URL_UNDER_TEST);
+    expect(delays).toEqual([5000, 10000, 15000, 15000]);
+  });
+
   it('falls back to a stale existing report when the new scan does not finish', async () => {
     const f = fakeFetch(
       (u) =>

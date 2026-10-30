@@ -64,7 +64,7 @@ Key decisions, in plain language:
 
 - Node.js 20.11+ (22 recommended)
 - pnpm 10 (`corepack enable`)
-- Optional: Docker (for PostgreSQL), a VirusTotal API key, an Anthropic or OpenAI-compatible API key
+- Optional: Docker (for PostgreSQL), a VirusTotal API key, an Anthropic, Gemini or OpenAI-compatible API key
 
 ## Quick start
 
@@ -92,7 +92,7 @@ All variables are documented in [`.env.example`](.env.example) and validated at 
 | --- | --- |
 | `VIRUSTOTAL_API_KEY` | Enables URL reputation. Never sent to the browser. |
 | `DOMAIN_INTELLIGENCE_PROVIDER` | `rdap` (free, default), `whoisxml` (needs `DOMAIN_INTELLIGENCE_API_KEY`), or `none`. |
-| `AI_PROVIDER`, `AI_MODEL`, `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` | Optional AI indicators and explanations. |
+| `AI_PROVIDER`, `AI_MODEL`, `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `GEMINI_API_KEY` | Optional AI indicators and explanations. |
 | `PAGE_INSPECTION_ENABLED` | Safe single-page fetch. Off by default — see [Security](#security). |
 | `DATABASE_URL` | PostgreSQL for reports; in-memory when empty. |
 | `ANALYSIS_RATE_LIMIT_PER_HOUR` | Per-client limit on checks (protects paid quotas). |
@@ -148,7 +148,7 @@ The response types are defined once in `packages/shared/src/schemas/report.ts` a
 
 **Domain intelligence** (`apps/api/src/domain-intelligence`). Default is RDAP via the IANA bootstrap file — free and standardised. Some ccTLD registries, possibly including `.ke`, do not publish RDAP; those lookups are shown as *unavailable* (which never raises the risk). For broader coverage set `DOMAIN_INTELLIGENCE_PROVIDER=whoisxml` and a WhoisXML API key.
 
-**AI** (`apps/api/src/ai`). Anthropic Messages API (default model `claude-haiku-5-5`) or any OpenAI-compatible Chat Completions endpoint. Responses are schema-validated; indicator evidence must be an exact substring of the URL, page excerpt or job text; summaries promising safety, guarantees or claiming an uninspected page was visited are rejected; on any failure the deterministic template is used. Job text has phone numbers, emails and ID-like numbers replaced before it is sent.
+**AI** (`apps/api/src/ai`). Anthropic Messages API (default model `claude-haiku-5-5`), Gemini through its OpenAI-compatible endpoint (default model `gemini-3.8-flash`), or any OpenAI-compatible Chat Completions endpoint. Responses are schema-validated; indicator evidence must be an exact substring of the URL, page excerpt or job text; summaries promising safety, guarantees or claiming an uninspected page was visited are rejected; on any failure the deterministic template is used. Job text has phone numbers, emails and ID-like numbers replaced before it is sent.
 
 ## How assessments are made
 
@@ -157,6 +157,7 @@ Rules live in `apps/api/src/risk-assessment` (`rules.config.ts` holds the thresh
 - Any **strong** evidence (≥3 malicious vendor verdicts, a homograph look-alike of a known brand, a password form on an impersonating page, PIN/OTP fields) → **Potentially malicious**.
 - **Warning** evidence from ≥2 independent non-AI sources → **Potentially malicious**; from one source → **Suspicious**.
 - ≥3 minor signals → **Suspicious**. A new domain alone is a minor signal only.
+- An address or page title that presents itself as Kenyan government outside `.go.ke` is **warning** evidence, so on its own it gives **Suspicious**, not **Potentially malicious**. Some public bodies use other endings, such as `.or.ke` or `.ac.ke`.
 - No signals and VirusTotal completed → **No significant threats detected** (with a "not a guarantee" note).
 - VirusTotal not completed and nothing else found → **Inconclusive**.
 - The link and the job offer are assessed separately; the overall category is the more severe, and conflicts (e.g. clean reputation but impersonation) are explained in the report.

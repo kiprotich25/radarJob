@@ -29,6 +29,8 @@ export interface VirusTotalOptions {
 }
 
 const NAME = 'VirusTotal';
+/** Delay before the first poll; doubles per attempt, capped at `pollIntervalMs`. */
+const FIRST_POLL_DELAY_MS = 5000;
 
 /**
  * Real VirusTotal v3 integration.
@@ -94,7 +96,7 @@ export class VirusTotalService implements ReputationProvider {
       }
 
       for (let attempt = 0; attempt < this.opts.pollAttempts; attempt++) {
-        await this.sleep(this.opts.pollIntervalMs);
+        await this.sleep(Math.min(FIRST_POLL_DELAY_MS * 2 ** attempt, this.opts.pollIntervalMs));
         const analysis = await this.poll(analysisId);
         if (analysis.state === 'completed') return this.completed(analysis.report, 'new_scan');
       }

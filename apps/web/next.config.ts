@@ -17,6 +17,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  devIndicators: false,
   async rewrites() {
     // Same-origin API access keeps the CSP tight (connect-src 'self') and avoids CORS in the browser.
     return [{ source: '/api/:path*', destination: `${API_INTERNAL_URL}/api/:path*` }];

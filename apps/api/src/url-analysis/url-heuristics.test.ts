@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { validateAndNormalizeUrl } from '@radarjob/shared';
+import { assessRisk } from '../risk-assessment/risk-engine';
 import { analyzeUrlStructure, editDistance, hasMixedScripts, skeleton } from './url-heuristics';
 
 const analyze = (raw: string) => {
@@ -60,6 +61,57 @@ describe('analyzeUrlStructure', () => {
 
   it('flags government names outside .go.ke', () => {
     expect(cats('https://kra-jobs.com/apply')).toContain('brand_in_domain');
+  });
+
+  it('treats a government name on another ending as a warning', () => {
+    expect(analyze('https://kra.co.ke/').indicators[0]).toMatchObject({
+      category: 'brand_in_domain',
+      severity: 'moderate',
+    });
+  });
+
+  it.each([
+    'https://kenya-gov-jobs.com/apply',
+    'https://govkenya-recruitment.org/',
+    'https://jobs-go.ke/',
+    'https://www.go.ke.example.com/',
+    'https://ministry-of-labour-kenya.com/',
+    'https://nairobicounty.co.ke/jobs',
+    'https://government.careers-portal.example.com/',
+  ])('flags %s as government-looking outside .go.ke', (url) => {
+    expect(analyze(url).indicators).toContainEqual(
+      expect.objectContaining({ category: 'government_not_go_ke', severity: 'moderate' }),
+    );
+    expect(analyze(url).impersonatedBrands).toContain('Government of Kenya');
+  });
+
+  it('does not report the same government name twice', () => {
+    expect(cats('https://kra-gov-jobs.com/')).not.toContain('government_not_go_ke');
+  });
+
+  it.each([
+    'https://www.treasury.go.ke/careers',
+    'https://www.nairobi.go.ke/jobs',
+    'https://www.usa.gov/jobs',
+    'https://www.gov.uk/find-a-job',
+    'https://www.health.go.ug/vacancies',
+    'https://governance-institute.co.ke/',
+    'https://grace-ministry.co.ke/',
+    'https://countyfair.co.ke/',
+    'https://nssf.or.ke/careers',
+  ])('does not flag %s', (url) => {
+    expect(cats(url)).not.toContain('government_not_go_ke');
+  });
+
+  it('makes a site suspicious, not automatically malicious', () => {
+    const { indicators } = analyze('https://kenya-gov-jobs.com/apply');
+    const { category } = assessRisk({
+      vt: { status: 'completed' },
+      domain: { status: 'completed' },
+      indicators,
+      jobAdSupplied: false,
+    });
+    expect(category).toBe('suspicious');
   });
 
   it('does not match short tokens inside longer words', () => {

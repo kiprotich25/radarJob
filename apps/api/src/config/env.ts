@@ -42,11 +42,12 @@ export const EnvSchema = z
     DOMAIN_INTELLIGENCE_API_KEY: optionalSecret,
     DOMAIN_INTELLIGENCE_TIMEOUT_MS: int(10000, 1000, 60000),
 
-    AI_PROVIDER: z.enum(['anthropic', 'openai', 'none']).default('none'),
+    AI_PROVIDER: z.enum(['anthropic', 'openai', 'gemini', 'none']).default('none'),
     AI_MODEL: z.string().optional(),
     ANTHROPIC_API_KEY: optionalSecret,
     OPENAI_API_KEY: optionalSecret,
     OPENAI_BASE_URL: z.string().default('https://api.openai.com/v1'),
+    GEMINI_API_KEY: optionalSecret,
     AI_TIMEOUT_MS: int(20000, 1000, 120000),
 
     PAGE_INSPECTION_ENABLED: bool(false),
@@ -106,7 +107,8 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
 export const ENV = Symbol('ENV');
 
 /** Default model per provider. OpenAI-compatible providers must set AI_MODEL explicitly. */
-export const DEFAULT_MODELS: Record<'anthropic' | 'openai', string | undefined> = {
+export const DEFAULT_MODELS: Record<'anthropic' | 'openai' | 'gemini', string | undefined> = {
   anthropic: 'claude-haiku-5-5',
   openai: undefined,
+  gemini: 'gemini-3.8-flash',
 };
