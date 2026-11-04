@@ -15,6 +15,7 @@ import {
   type NormalizedUrl,
   type VirusTotalCheck,
 } from '@radarjob/shared';
+import { waitUntil } from '@vercel/functions';
 import { AI_SERVICE, AiService, type AiResult } from '../ai/ai.service';
 import { ApiException } from '../common/api-error';
 import { Semaphore } from '../common/limiters';
@@ -129,7 +130,10 @@ export class AnalysisService implements OnModuleInit, OnModuleDestroy {
     const report = this.initialReport(u, Boolean(text));
     await this.store.save(report, u.registeredDomain);
     this.logger.log(`analysis ${report.id} started for ${logSafeHost(u.hostname)}`);
-    void this.execute(report, u, text);
+    const work = this.execute(report, u, text);
+    // On Vercel, work that outlives the response must be registered or the function may be frozen.
+    if (process.env.VERCEL) waitUntil(work);
+    else void work;
     return { id: report.id, status: 'running' };
   }
 

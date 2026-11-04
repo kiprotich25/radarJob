@@ -1,5 +1,7 @@
 import 'reflect-metadata';
 import { ConsoleLogger, Logger } from '@nestjs/common';
+// Vercel identifies the NestJS entrypoint by a direct @nestjs/core import.
+import '@nestjs/core';
 import { createApp } from './bootstrap';
 import { loadEnv } from './config/env';
 
