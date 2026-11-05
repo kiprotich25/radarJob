@@ -110,5 +110,5 @@ export const ENV = Symbol('ENV');
 export const DEFAULT_MODELS: Record<'anthropic' | 'openai' | 'gemini', string | undefined> = {
   anthropic: 'claude-haiku-5-5',
   openai: undefined,
-  gemini: 'gemini-3.8-flash',
+  gemini: 'gemini-3.5-flash-lite',
 };

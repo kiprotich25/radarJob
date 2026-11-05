@@ -59,7 +59,7 @@ describe('Gemini provider', () => {
     );
     expect(f.calls[0].init?.headers).toMatchObject({ authorization: 'Bearer test-key' });
     expect(JSON.parse(String(f.calls[0].init?.body))).toMatchObject({
-      model: 'gemini-3.8-flash',
+      model: 'gemini-3.5-flash-lite',
       reasoning_effort: 'low',
       max_tokens: 2948,
     });

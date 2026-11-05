@@ -148,7 +148,7 @@ The response types are defined once in `packages/shared/src/schemas/report.ts` a
 
 **Domain intelligence** (`apps/api/src/domain-intelligence`). Default is RDAP via the IANA bootstrap file — free and standardised. Some ccTLD registries, possibly including `.ke`, do not publish RDAP; those lookups are shown as *unavailable* (which never raises the risk). For broader coverage set `DOMAIN_INTELLIGENCE_PROVIDER=whoisxml` and a WhoisXML API key.
 
-**AI** (`apps/api/src/ai`). Anthropic Messages API (default model `claude-haiku-5-5`), Gemini through its OpenAI-compatible endpoint (default model `gemini-3.8-flash`), or any OpenAI-compatible Chat Completions endpoint. Responses are schema-validated; indicator evidence must be an exact substring of the URL, page excerpt or job text; summaries promising safety, guarantees or claiming an uninspected page was visited are rejected; on any failure the deterministic template is used. Job text has phone numbers, emails and ID-like numbers replaced before it is sent.
+**AI** (`apps/api/src/ai`). Anthropic Messages API (default model `claude-haiku-5-5`), Gemini through its OpenAI-compatible endpoint (default model `gemini-3.5-flash-lite`), or any OpenAI-compatible Chat Completions endpoint. Responses are schema-validated; indicator evidence must be an exact substring of the URL, page excerpt or job text; summaries promising safety, guarantees or claiming an uninspected page was visited are rejected; on any failure the deterministic template is used. Job text has phone numbers, emails and ID-like numbers replaced before it is sent.
 
 ## How assessments are made
 
