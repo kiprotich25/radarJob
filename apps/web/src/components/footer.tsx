@@ -33,7 +33,7 @@ export function Footer() {
               </Link>
             </li>
             <li>
-              <Link className="text-ink-soft hover:text-ink hover:underline" href="/about#contact">
+              <Link className="text-ink-soft hover:text-ink hover:underline" href="https://code-blooded-glitch.github.io/CodeBlooded/">
                 Contact
               </Link>
             </li>
