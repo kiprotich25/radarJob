@@ -1,0 +1,14 @@
+# Local PostgreSQL for development (optional — RadarJob runs with in-memory storage without it).
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: radarjob
+      POSTGRES_PASSWORD: radarjob
+      POSTGRES_DB: radarjob
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - radarjob-pg:/var/lib/postgresql/data
+volumes:
+  radarjob-pg:

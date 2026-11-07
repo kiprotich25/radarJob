@@ -1,0 +1,32 @@
+// RadarJob persistence. Only analysis reports are stored server-side, and only
+// in a privacy-minimised form: no query strings, no job-advert text, no IPs.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+  importFileExtension = ""
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model AnalysisRecord {
+  /// Opaque random identifier (not derived from the URL).
+  id               String   @id
+  /// Registered domain only, e.g. example.co.ke. Used for retention/debugging.
+  registeredDomain String?
+  status           String
+  category         String?
+  /// Full report JSON (already redacted: display URL has no query string).
+  report           Json
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  /// Records are deleted after this time by the retention job.
+  expiresAt        DateTime
+
+  @@index([expiresAt])
+  @@index([registeredDomain])
+  @@index([createdAt])
+}
