@@ -151,9 +151,8 @@ export function UrlAnalyzerForm({
       <p className="flex items-start gap-2 text-sm text-ink-soft">
         <LockKeyhole aria-hidden className="mt-0.5 size-4 shrink-0" />
         <span>
-          Live checks need an internet connection. The link is sent to VirusTotal and other services
-          for analysis, and they may keep it under their own policies. Don&apos;t submit
-          password-reset links, private document links or links that log you in.
+          Live checks need an internet connection. Don&apos;t submit password-reset links, private
+          document links or links that log you in.
         </span>
       </p>
 

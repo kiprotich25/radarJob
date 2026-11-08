@@ -59,33 +59,33 @@ const PATTERNS = [
   },
 ];
 
-const CHECKS = [
-  [
-    'URL reputation',
-    'Verdicts from dozens of security vendors through VirusTotal.',
-    'New scam sites often have no verdicts yet.',
-  ],
-  [
-    'Domain registration',
-    'When the domain was registered, by which registrar, and when it expires.',
-    'A new domain is not proof of a scam; many ccTLDs publish limited data.',
-  ],
-  [
-    'Link structure',
-    'Impersonated brand names, look-alike spellings, mixed alphabets, IP-address links and other tricks.',
-    'Based on the address only, not the page content.',
-  ],
-  [
-    'Page content',
-    'Where enabled: password or PIN fields, payment requests and fake branding — fetched safely, without running scripts.',
-    'Some sites block automated visits or change later.',
-  ],
-  [
-    'Job advert text',
-    'Fees, unrealistic pay, urgency, secrecy, and requests for PINs or ID documents in a message you paste.',
-    'Text without red flags can still be a scam.',
-  ],
-];
+// const CHECKS = [
+//   [
+//     'URL reputation',
+//     'Verdicts from dozens of security vendors through VirusTotal.',
+//     'New scam sites often have no verdicts yet.',
+//   ],
+//   [
+//     'Domain registration',
+//     'When the domain was registered, by which registrar, and when it expires.',
+//     'A new domain is not proof of a scam; many ccTLDs publish limited data.',
+//   ],
+//   [
+//     'Link structure',
+//     'Impersonated brand names, look-alike spellings, mixed alphabets, IP-address links and other tricks.',
+//     'Based on the address only, not the page content.',
+//   ],
+//   [
+//     'Page content',
+//     'Where enabled: password or PIN fields, payment requests and fake branding — fetched safely, without running scripts.',
+//     'Some sites block automated visits or change later.',
+//   ],
+//   [
+//     'Job advert text',
+//     'Fees, unrealistic pay, urgency, secrecy, and requests for PINs or ID documents in a message you paste.',
+//     'Text without red flags can still be a scam.',
+//   ],
+// ];
 
 export default function HomePage() {
   return (
