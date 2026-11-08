@@ -98,8 +98,7 @@ export default function HomePage() {
                 Before you apply, make sure it&apos;s real.
               </h1>
               <p className="mt-5 max-w-[60ch] text-lg text-ink-soft sm:text-xl">
-                Learn to recognize job scams and investigate suspicious recruitment links using
-                security intelligence and AI-assisted analysis.
+                Learn to recognize job scams and investigate suspicious recruitment links.
               </p>
             </div>
             <RadarMark animated className="hidden size-28 rounded-3xl md:block" />
