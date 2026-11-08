@@ -191,41 +191,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section aria-labelledby="ai" className="border-y border-rule bg-surface">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:grid-cols-2">
-          <div>
-            <h2 id="ai" className="text-3xl font-extrabold text-ink">
-              Where AI helps — and where it doesn&apos;t
-            </h2>
-            <p className="mt-3 text-ink-soft">
-              Reputation databases only know about sites someone has already reported. AI helps spot
-              patterns a database has not caught yet, such as an employer&apos;s name hidden in a
-              look-alike address, and turns technical findings into plain language.
-            </p>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2">
-            <div>
-              <h3 className="font-bold text-ink">AI may</h3>
-              <ul className="mt-2 space-y-2 text-ink-soft">
-                <li>Point out impersonation and deceptive wording, quoting the exact evidence</li>
-                <li>Explain findings in everyday language</li>
-                <li>Suggest steps specific to what was found</li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-bold text-ink">AI may not</h3>
-              <ul className="mt-2 space-y-2 text-ink-soft">
-                <li>Change the assessment, which is set by tested rules</li>
-                <li>
-                  Invent detections, dates or page contents — unverifiable claims are discarded
-                </li>
-                <li>Declare a job or website safe</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section aria-labelledby="guides" className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <h2 id="guides" className="text-3xl font-extrabold text-ink">

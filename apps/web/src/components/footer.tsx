@@ -37,16 +37,6 @@ export function Footer() {
                 Contact
               </Link>
             </li>
-            <li>
-              <Link className="text-ink-soft hover:text-ink hover:underline" href="/learn">
-                Scam guides
-              </Link>
-            </li>
-            <li>
-              <Link className="text-ink-soft hover:text-ink hover:underline" href="/quiz">
-                Scam-awareness quiz
-              </Link>
-            </li>
           </ul>
         </nav>
       </div>
