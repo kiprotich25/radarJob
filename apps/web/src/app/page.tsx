@@ -152,7 +152,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section aria-labelledby="checks" className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      {/* <section aria-labelledby="checks" className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <h2 id="checks" className="text-3xl font-extrabold text-ink">
           What RadarJob checks
         </h2>
@@ -188,7 +188,7 @@ export default function HomePage() {
             </tbody>
           </table>
         </div>
-      </section>
+      </section> */}
 
       <section aria-labelledby="guides" className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
