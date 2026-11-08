@@ -1,6 +1,7 @@
 # RadarJob
 
 **Spot the scam before it costs you.**
+Built as part of [KamiLimu](https://www.kamilimu.org)'s Innovation Competition.
 
 RadarJob is a mobile-first Progressive Web App that helps job seekers — initially students, graduates and first-time job seekers in Kenya — recognise fraudulent recruitment. It combines job-scam education with a live link checker that gathers evidence from VirusTotal, domain-registration data, link-structure analysis, optional safe page inspection and optional AI, then explains the result in plain language.
 
