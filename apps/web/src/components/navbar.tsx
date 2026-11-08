@@ -12,7 +12,6 @@ const LINKS = [
   { href: '/', label: 'Home' },
   { href: '/analyze', label: 'Check a Link' },
   { href: '/learn', label: 'Learn' },
-  { href: '/learn#guides', label: 'Scam Guides' },
   { href: '/history', label: 'My Checks' },
   { href: '/about', label: 'About' },
 ];
