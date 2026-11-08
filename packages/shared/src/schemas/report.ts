@@ -40,6 +40,7 @@ export const IndicatorSourceSchema = z.enum([
   'page',
   'job_ad',
   'job_ad_ai',
+  'webcheck',
 ]);
 export type IndicatorSource = z.infer<typeof IndicatorSourceSchema>;
 
@@ -118,6 +119,53 @@ export const PageCheckSchema = z.object({
 });
 export type PageCheck = z.infer<typeof PageCheckSchema>;
 
+/**
+ * Web-Check (https://web-check.xyz) results: threat-feed listings, security DNS
+ * block lists, the TLS certificate and Tranco popularity rank. Each part is
+ * optional because Web-Check runs them independently and any one can fail.
+ */
+export const WebCheckThreatSourceSchema = z.object({
+  name: z.string(),
+  /** true = listed as harmful, false = checked and not listed, null = could not be checked. */
+  listed: z.boolean().nullable(),
+  /** Listed in the past but not currently (e.g. the malware URLs are offline). */
+  historical: z.boolean().optional(),
+  detail: z.string().optional(),
+});
+export type WebCheckThreatSource = z.infer<typeof WebCheckThreatSourceSchema>;
+
+export const WebCheckCheckSchema = z.object({
+  status: CheckStatusSchema,
+  provider: z.string().optional(),
+  threats: z.array(WebCheckThreatSourceSchema).optional(),
+  blocklists: z
+    .object({
+      /** Security-focused resolvers (malware/phishing filtering) that block the domain. */
+      securityBlockedBy: z.array(z.string()),
+      securityChecked: z.number().int().nonnegative(),
+      /** Family/adult/ad filters that block the domain — informational only. */
+      otherBlockedBy: z.array(z.string()),
+    })
+    .optional(),
+  tls: z
+    .object({
+      valid: z.boolean(),
+      error: z.string().optional(),
+      issuer: z.string().optional(),
+      validFrom: z.string().optional(),
+      validTo: z.string().optional(),
+    })
+    .optional(),
+  rank: z
+    .object({
+      /** Best Tranco rank, or undefined when the site is not in the top 1 million. */
+      position: z.number().int().positive().optional(),
+    })
+    .optional(),
+  message: z.string().optional(),
+});
+export type WebCheckCheck = z.infer<typeof WebCheckCheckSchema>;
+
 export const SimpleCheckSchema = z.object({
   status: CheckStatusSchema,
   message: z.string().optional(),
@@ -168,6 +216,8 @@ export const ReportSchema = z.object({
     urlAi: SimpleCheckSchema,
     page: PageCheckSchema,
     jobAd: SimpleCheckSchema,
+    /** Optional so reports saved before this check existed still validate. */
+    webCheck: WebCheckCheckSchema.optional(),
   }),
   indicators: z.array(IndicatorSchema),
   assessment: AssessmentSchema.optional(),
@@ -214,6 +264,7 @@ export const HealthSchema = z.object({
     ai: z.enum(['configured', 'not_configured', 'mock']),
     aiProvider: z.string(),
     pageInspection: z.enum(['enabled', 'disabled']),
+    webCheck: z.enum(['configured', 'not_configured', 'mock']).optional(),
     persistence: z.enum(['postgres', 'memory']),
   }),
 });

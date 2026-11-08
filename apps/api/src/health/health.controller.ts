@@ -9,6 +9,7 @@ import {
 } from '../domain-intelligence/domain-intel.provider';
 import { PAGE_INSPECTOR, type PageInspector } from '../page-inspection/page-inspection.service';
 import { REPUTATION_PROVIDER, type ReputationProvider } from '../virustotal/reputation.provider';
+import { WEBCHECK_PROVIDER, type WebCheckProvider } from '../webcheck/webcheck.service';
 
 /** Reports which integrations are configured — never secrets or their values. */
 @Controller('health')
@@ -19,6 +20,7 @@ export class HealthController {
     @Inject(DOMAIN_INTEL_PROVIDER) private readonly domain: DomainIntelProvider,
     @Inject(AI_SERVICE) private readonly ai: AiService,
     @Inject(PAGE_INSPECTOR) private readonly page: PageInspector,
+    @Inject(WEBCHECK_PROVIDER) private readonly webCheck: WebCheckProvider,
     @Inject(REPORT_STORE) private readonly store: ReportStore,
   ) {}
 
@@ -35,6 +37,7 @@ export class HealthController {
         ai: this.ai.mode,
         aiProvider: this.ai.providerLabel,
         pageInspection: this.page.enabled ? 'enabled' : 'disabled',
+        webCheck: this.webCheck.mode,
         persistence: this.store.kind,
       },
     };

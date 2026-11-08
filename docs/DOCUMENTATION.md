@@ -293,6 +293,21 @@ Evidence produced (`risk-assessment/evidence.ts`):
 - **WhoisXML** (paid) gives broader coverage. It needs `DOMAIN_INTELLIGENCE_API_KEY`.
 - A domain **younger than 30 days** is a *weak* signal only. Privacy-protected registrant details are *info*.
 
+### 8.4.1 Web-Check threat intelligence (`apps/api/src/webcheck/`)
+
+Optional and off by default (`WEBCHECK_ENABLED=false`). RadarJob calls four [Web-Check](https://github.com/Lissy93/web-check) endpoints in parallel, at `{WEBCHECK_API_URL}/api/<check>?url=…`. It sends only the scheme, host and path, never the query string.
+
+| Endpoint | What RadarJob uses | Evidence |
+| --- | --- | --- |
+| `threats` | Google Safe Browsing, PhishTank, URLhaus, NetAPI (and Cloudmersive if the Web-Check server has a key) | Currently listed by any feed → **strong**. Listed only in the past → **moderate** |
+| `block-lists` | Whether Quad9, CleanBrowsing Security and Comodo Secure refuse to resolve the domain | ≥ 2 security filters → **moderate**. 1 → **weak**. Family, adult and ad filters are shown but never counted |
+| `ssl` | Certificate validity, issuer and expiry | Invalid certificate (expired, self-signed, wrong host) → **moderate** |
+| `rank` | Tranco top-1M position | Information only. A flagged site in the top 100,000 adds a conflict note |
+
+Each lookup can fail on its own. A failed lookup is reported as missing and never treated as clean. If all four fail, the check is *unavailable*. If an unfiltered resolver (Cloudflare or Google DNS) also fails to resolve the domain, the block-list result is discarded, because that points to a DNS failure rather than filtering. Completed results are cached for `WEBCHECK_CACHE_TTL_MINUTES`.
+
+**Use a self-hosted instance.** The public `web-check.xyz` API is heavily rate-limited and often answers `429`. Deploy Web-Check yourself (Docker: `docker run -p 3000:3000 lissy93/web-check`) and set `WEBCHECK_API_URL` to it. Set `GOOGLE_CLOUD_API_KEY` on the Web-Check server to enable Google Safe Browsing, the most valuable feed.
+
 ### 8.5 Safe page inspection (`apps/api/src/page-inspection/`)
 
 This check is off by default (`PAGE_INSPECTION_ENABLED=false`). When on, RadarJob fetches the page **once** under these limits:
@@ -576,6 +591,15 @@ The API validates all of these with Zod at startup (`apps/api/src/config/env.ts`
 | `PAGE_INSPECTION_TIMEOUT_MS` | `8000` | |
 | `PAGE_INSPECTION_MAX_BYTES` | `1000000` | |
 | `PAGE_INSPECTION_MAX_REDIRECTS` | `5` | |
+
+### Web-Check
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `WEBCHECK_ENABLED` | `false` | Turns on threat-feed, DNS block-list, certificate and rank checks (§8.4.1) |
+| `WEBCHECK_API_URL` | `https://web-check.xyz` | Base URL of a Web-Check instance, without `/api`. Self-host for real use |
+| `WEBCHECK_TIMEOUT_MS` | `20000` | Per-lookup timeout |
+| `WEBCHECK_CACHE_TTL_MINUTES` | `60` | `0` disables caching |
 
 ### Abuse protection
 

@@ -1,4 +1,4 @@
-import type { DomainCheck, Indicator, VirusTotalCheck } from '@radarjob/shared';
+import type { DomainCheck, Indicator, VirusTotalCheck, WebCheckCheck } from '@radarjob/shared';
 import { totalEngines } from '../virustotal/virustotal.normalize';
 import type { RiskRules } from './rules.config';
 
@@ -100,6 +100,111 @@ export function domainIndicators(domain: DomainCheck, rules: RiskRules): Indicat
       basis: 'observed',
       severity: 'info',
       limitations: 'Privacy protection is standard practice and is not evidence of fraud.',
+    });
+  }
+  return out;
+}
+
+const TLS_ERRORS: Array<[RegExp, string]> = [
+  [/EXPIRED/i, 'the certificate has expired'],
+  [
+    /SELF_SIGNED|SELF-SIGNED/i,
+    'the certificate is self-signed, so no trusted authority vouches for it',
+  ],
+  [
+    /ALTNAME|HOSTNAME|IP: .* is not in the cert/i,
+    'the certificate was issued for a different website',
+  ],
+  [/NOT_YET_VALID/i, 'the certificate is not valid yet'],
+  [
+    /UNABLE_TO_GET_ISSUER|UNABLE_TO_VERIFY|LOCAL_ISSUER/i,
+    'the certificate chain cannot be verified',
+  ],
+];
+
+export function describeTlsError(code?: string): string {
+  if (!code) return 'the certificate did not pass validation';
+  return (
+    TLS_ERRORS.find(([re]) => re.test(code))?.[1] ??
+    `the certificate did not pass validation (${code})`
+  );
+}
+
+/** Convert Web-Check results into indicators. Missing parts produce nothing (never a clean signal). */
+export function webCheckIndicators(wc: WebCheckCheck | undefined, rules: RiskRules): Indicator[] {
+  if (!wc || wc.status !== 'completed') return [];
+  const out: Indicator[] = [];
+  const base = {
+    source: 'webcheck' as const,
+    dimension: 'link' as const,
+    basis: 'observed' as const,
+  };
+  const describe = (list: NonNullable<WebCheckCheck['threats']>) =>
+    list.map((s) => (s.detail ? `${s.name} (${s.detail})` : s.name)).join('; ');
+
+  const listed = (wc.threats ?? []).filter((s) => s.listed === true);
+  const current = listed.filter((s) => !s.historical);
+  const past = listed.filter((s) => s.historical);
+  if (current.length) {
+    out.push({
+      ...base,
+      id: 'webcheck-threat-feed',
+      category: 'threat_feed_listed',
+      title:
+        current.length === 1
+          ? `${current[0]!.name} lists this site as harmful`
+          : `${current.length} threat-intelligence feeds list this site as harmful`,
+      evidence: describe(current),
+      whyItMatters:
+        'Threat-intelligence feeds track websites confirmed to be used for phishing, malware or fraud. A listing is independent evidence, separate from VirusTotal.',
+      severity: 'strong',
+    });
+  } else if (past.length) {
+    out.push({
+      ...base,
+      id: 'webcheck-threat-history',
+      category: 'threat_feed_history',
+      title: 'This site was listed as harmful in the past',
+      evidence: describe(past),
+      whyItMatters:
+        'A history of hosting malware or phishing suggests the site has been abused before and may be poorly secured or reused by attackers.',
+      severity: 'moderate',
+      limitations:
+        'Sites are sometimes cleaned up after a compromise. A past listing is not proof of current harm.',
+    });
+  }
+
+  const bl = wc.blocklists;
+  if (bl && bl.securityBlockedBy.length) {
+    const n = bl.securityBlockedBy.length;
+    const moderate = n >= rules.webcheck.securityResolversForModerate;
+    out.push({
+      ...base,
+      id: 'webcheck-dns-block',
+      category: 'dns_security_block',
+      title: `${n} of ${bl.securityChecked} security DNS filters block this domain`,
+      evidence: `Blocked by: ${bl.securityBlockedBy.join(', ')}`,
+      whyItMatters:
+        'Security-focused DNS services refuse to resolve domains their threat intelligence associates with malware or phishing, to stop people reaching them.',
+      severity: moderate ? 'moderate' : 'weak',
+      limitations: moderate
+        ? undefined
+        : 'A single filter blocking a domain can be a false positive.',
+    });
+  }
+
+  if (wc.tls && !wc.tls.valid) {
+    out.push({
+      ...base,
+      id: 'webcheck-tls-invalid',
+      category: 'tls_invalid',
+      title: "The site's HTTPS certificate is not valid",
+      evidence: `On inspection, ${describeTlsError(wc.tls.error)}.`,
+      whyItMatters:
+        'A valid certificate confirms you are connected to the website named in the address. Without one, browsers show a warning and the connection may not be private — do not enter personal details.',
+      severity: 'moderate',
+      limitations:
+        'Legitimate sites occasionally let certificates lapse by mistake. It is still unsafe to enter personal information until it is fixed.',
     });
   }
   return out;

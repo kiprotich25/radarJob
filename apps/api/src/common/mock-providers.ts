@@ -1,6 +1,7 @@
-import type { DomainCheck, VirusTotalCheck } from '@radarjob/shared';
+import type { DomainCheck, VirusTotalCheck, WebCheckCheck } from '@radarjob/shared';
 import type { ReputationProvider } from '../virustotal/reputation.provider';
 import type { DomainIntelProvider } from '../domain-intelligence/domain-intel.provider';
+import type { WebCheckProvider } from '../webcheck/webcheck.service';
 
 /**
  * DEVELOPMENT-ONLY mock providers.
@@ -12,6 +13,8 @@ import type { DomainIntelProvider } from '../domain-intelligence/domain-intel.pr
  *   mock-vt-down    (anywhere in the hostname)  → VirusTotal unavailable
  *   mock-new        (in the registered domain, e.g. mock-new-jobs.com) → registered 5 days ago
  *   mock-whois-down (in the registered domain)  → domain lookup unavailable
+ *   mock-malicious  (with WEBCHECK_ENABLED=true) → listed by threat feeds and DNS filters
+ *   mock-webcheck-down (anywhere in the hostname) → Web-Check unavailable
  */
 export const SIMULATED_NOTE = 'SIMULATED development data — not a real result.';
 
@@ -77,6 +80,49 @@ export class MockDomainIntelProvider implements DomainIntelProvider {
         statuses: ['client transfer prohibited'],
         redacted: true,
       },
+    };
+  }
+}
+
+export class MockWebCheckProvider implements WebCheckProvider {
+  readonly mode = 'mock' as const;
+  readonly enabled = true;
+
+  async check(normalizedUrl: string): Promise<WebCheckCheck> {
+    const host = new URL(normalizedUrl).hostname;
+    const provider = 'Mock Web-Check (development only)';
+    if (host.includes('mock-webcheck-down')) {
+      return {
+        status: 'unavailable',
+        provider,
+        message: `Web-Check could not be reached. (${SIMULATED_NOTE})`,
+      };
+    }
+    const bad = host.includes('mock-malicious');
+    return {
+      status: 'completed',
+      provider,
+      message: SIMULATED_NOTE,
+      threats: [
+        {
+          name: 'Google Safe Browsing',
+          listed: bad,
+          detail: bad ? 'Threat type: social engineering' : undefined,
+        },
+        { name: 'URLhaus', listed: false },
+        { name: 'NetAPI compromised-sites feed', listed: false },
+      ],
+      blocklists: {
+        securityBlockedBy: bad ? ['Quad9', 'CleanBrowsing Security'] : [],
+        securityChecked: 3,
+        otherBlockedBy: [],
+      },
+      tls: {
+        valid: true,
+        issuer: 'Mock CA (simulated)',
+        validTo: new Date(Date.now() + 60 * 86_400_000).toISOString(),
+      },
+      rank: bad ? {} : { position: 4321 },
     };
   }
 }

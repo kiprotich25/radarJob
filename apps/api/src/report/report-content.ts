@@ -35,6 +35,37 @@ export function buildFindings(checks: Checks): string[] {
     if (d.data.expiresAt)
       out.push(`The domain registration expires on ${fmtDate(d.data.expiresAt)}.`);
   }
+  const wc = checks.webCheck;
+  if (wc?.status === 'completed') {
+    const checked = (wc.threats ?? []).filter((s) => s.listed !== null);
+    if (checked.length) {
+      const listed = checked.filter((s) => s.listed);
+      out.push(
+        listed.length
+          ? `Threat feeds (via Web-Check): listed by ${listed.map((s) => s.name).join(', ')}; not listed by ${checked.length - listed.length} other source(s).`
+          : `Threat feeds (via Web-Check): not listed by any of the ${checked.length} sources checked (${checked.map((s) => s.name).join(', ')}).`,
+      );
+    }
+    if (wc.blocklists) {
+      out.push(
+        `${wc.blocklists.securityBlockedBy.length} of ${wc.blocklists.securityChecked} security DNS filters block this domain${wc.blocklists.securityBlockedBy.length ? ` (${wc.blocklists.securityBlockedBy.join(', ')})` : ''}.`,
+      );
+    }
+    if (wc.tls) {
+      out.push(
+        wc.tls.valid
+          ? `The HTTPS certificate is valid${wc.tls.issuer ? `, issued by ${wc.tls.issuer}` : ''}${wc.tls.validTo ? `, expiring ${fmtDate(wc.tls.validTo)}` : ''}.`
+          : `The HTTPS certificate did not pass validation${wc.tls.error ? ` (${wc.tls.error})` : ''}.`,
+      );
+    }
+    if (wc.rank) {
+      out.push(
+        wc.rank.position
+          ? `Popularity: Tranco rank #${wc.rank.position.toLocaleString('en-US')} among the most visited websites.`
+          : 'Popularity: the site is not among the top 1 million most visited websites (Tranco).',
+      );
+    }
+  }
   const p = checks.page;
   if (p.status === 'completed') {
     const bits = [`The webpage was inspected${p.finalHost ? ` at ${p.finalHost}` : ''}`];
@@ -72,6 +103,12 @@ export function buildUnknowns(checks: Checks, jobAdSupplied: boolean): string[] 
     const msg = checks.page.message ?? '';
     out.push(
       /not inspected/i.test(msg) ? msg : `The webpage itself was not inspected. ${msg}`.trim(),
+    );
+  }
+  const wc = checks.webCheck;
+  if (wc && wc.status !== 'completed' && wc.status !== 'not_configured') {
+    out.push(
+      `Threat-feed, DNS block-list and certificate checks (Web-Check) did not run: ${wc.message ?? 'the check did not complete.'}`,
     );
   }
   if (checks.urlAi.status !== 'completed') {

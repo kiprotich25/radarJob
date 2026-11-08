@@ -14,6 +14,7 @@ import {
   type Indicator,
   type NormalizedUrl,
   type VirusTotalCheck,
+  type WebCheckCheck,
 } from '@radarjob/shared';
 import { waitUntil } from '@vercel/functions';
 import { AI_SERVICE, AiService, type AiResult } from '../ai/ai.service';
@@ -39,11 +40,16 @@ import {
   STANDARD_LIMITATIONS,
   templateExplanation,
 } from '../report/report-content';
-import { domainIndicators, virusTotalIndicators } from '../risk-assessment/evidence';
+import {
+  domainIndicators,
+  virusTotalIndicators,
+  webCheckIndicators,
+} from '../risk-assessment/evidence';
 import { assessRisk } from '../risk-assessment/risk-engine';
 import { DEFAULT_RULES } from '../risk-assessment/rules.config';
 import { analyzeUrlStructure } from '../url-analysis/url-heuristics';
 import { REPUTATION_PROVIDER, type ReputationProvider } from '../virustotal/reputation.provider';
+import { WEBCHECK_PROVIDER, type WebCheckProvider } from '../webcheck/webcheck.service';
 import { REPORT_STORE, type ReportStore } from './report-store';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -83,6 +89,7 @@ export class AnalysisService implements OnModuleInit, OnModuleDestroy {
     @Inject(DOMAIN_INTEL_PROVIDER) private readonly domainIntel: DomainIntelProvider,
     @Inject(PAGE_INSPECTOR) private readonly pageInspector: PageInspector,
     @Inject(AI_SERVICE) private readonly ai: AiService,
+    @Inject(WEBCHECK_PROVIDER) private readonly webCheck: WebCheckProvider,
     @Inject(REPORT_STORE) private readonly store: ReportStore,
   ) {
     this.gate = new Semaphore(env.ANALYSIS_MAX_CONCURRENT, env.ANALYSIS_MAX_QUEUED);
@@ -174,6 +181,9 @@ export class AnalysisService implements OnModuleInit, OnModuleDestroy {
         urlHeuristics: { status: 'pending' },
         urlAi: { status: 'pending' },
         page: { status: 'pending' },
+        webCheck: this.webCheck.enabled
+          ? { status: 'pending' }
+          : { status: 'not_configured', message: 'Web-Check is not enabled on this server.' },
         jobAd: jobAdSupplied
           ? { status: 'pending' }
           : { status: 'skipped', message: 'No job text was provided.' },
@@ -212,6 +222,7 @@ export class AnalysisService implements OnModuleInit, OnModuleDestroy {
       c.virustotal = { status: 'running' };
       c.domain = { status: 'running' };
       c.page = { status: this.pageInspector.enabled ? 'running' : 'skipped' };
+      if (this.webCheck.enabled) c.webCheck = { status: 'running' };
       c.urlAi = { status: this.ai.configured ? 'running' : 'not_configured' };
 
       // 1. Deterministic URL structure analysis (instant, always available).
@@ -276,6 +287,19 @@ export class AnalysisService implements OnModuleInit, OnModuleDestroy {
         return r;
       });
 
+      const webCheckP = (
+        this.webCheck.enabled
+          ? bounded<WebCheckCheck>(this.webCheck.check(u.normalized), remaining(), () => ({
+              status: 'unavailable',
+              message: timedOut('The Web-Check lookup'),
+            }))
+          : Promise.resolve<WebCheckCheck>(c.webCheck!)
+      ).then(async (r) => {
+        c.webCheck = r;
+        await persist();
+        return r;
+      });
+
       const jobAiP: Promise<AiResult | null> = jobAdText
         ? bounded(
             this.ai.analyzeJobAd(redactPersonalData(jobAdText), jobRuleIndicators),
@@ -309,12 +333,13 @@ export class AnalysisService implements OnModuleInit, OnModuleDestroy {
         ),
       );
 
-      const [vt, domain, page, urlAi, jobAi] = await Promise.all([
+      const [vt, domain, page, urlAi, jobAi, webCheck] = await Promise.all([
         vtP,
         domainP,
         pageP,
         urlAiP,
         jobAiP,
+        webCheckP,
       ]);
       c.urlAi = { status: urlAi.status, message: urlAi.message };
       if (jobAdText) {
@@ -332,6 +357,7 @@ export class AnalysisService implements OnModuleInit, OnModuleDestroy {
         ...virusTotalIndicators(vt, DEFAULT_RULES),
         ...structure.indicators,
         ...domainIndicators(domain, DEFAULT_RULES),
+        ...webCheckIndicators(webCheck, DEFAULT_RULES),
         ...page.indicators,
         ...urlAi.indicators,
         ...jobRuleIndicators,
@@ -344,7 +370,13 @@ export class AnalysisService implements OnModuleInit, OnModuleDestroy {
       }));
 
       const assessment = assessRisk(
-        { vt, domain, indicators: report.indicators, jobAdSupplied: Boolean(jobAdText) },
+        {
+          vt,
+          domain,
+          webCheck,
+          indicators: report.indicators,
+          jobAdSupplied: Boolean(jobAdText),
+        },
         DEFAULT_RULES,
       );
       report.assessment = assessment;

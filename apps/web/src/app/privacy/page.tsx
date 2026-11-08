@@ -23,6 +23,13 @@ export default function PrivacyPage() {
           registries, or WhoisXML API if the operator has configured it).
         </li>
         <li>
+          If the operator has enabled <strong>Web-Check</strong>, the link&apos;s address without
+          the part after “?” is sent to a Web-Check server. That server checks it against
+          threat-intelligence feeds (such as Google Safe Browsing, PhishTank, URLhaus and NetAPI),
+          public filtering DNS services and the Tranco popularity list, and reads the site&apos;s
+          HTTPS certificate.
+        </li>
+        <li>
           If page inspection is enabled, our server downloads the page once, without running scripts
           or submitting forms.
         </li>

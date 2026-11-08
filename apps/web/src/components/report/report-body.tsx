@@ -10,6 +10,7 @@ import { EvidenceList } from './evidence-list';
 import { LimitationsNotice } from './limitations-notice';
 import { RecommendedActions } from './recommended-actions';
 import { RiskAssessmentBanner } from './risk-assessment-banner';
+import { SiteSecurity } from './site-security';
 
 export function SimulatedNotice() {
   return (
@@ -88,6 +89,9 @@ export function ReportBody({ report }: { report: AnalysisReport }) {
         <DetectionSummary vt={report.checks.virustotal} />
         <DomainInformation domain={report.checks.domain} />
       </div>
+      {report.checks.webCheck && report.checks.webCheck.status !== 'not_configured' && (
+        <SiteSecurity check={report.checks.webCheck} />
+      )}
 
       <LimitationsNotice unknowns={report.unknowns} limitations={report.limitations} />
       <AnalysisProgress report={report} title="Checks performed" />

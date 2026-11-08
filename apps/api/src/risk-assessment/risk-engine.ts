@@ -4,6 +4,7 @@ import type {
   Indicator,
   RiskCategory,
   VirusTotalCheck,
+  WebCheckCheck,
 } from '@radarjob/shared';
 import { DEFAULT_RULES, type RiskRules } from './rules.config';
 
@@ -21,7 +22,12 @@ export interface RiskInput {
   domain: DomainCheck;
   indicators: Indicator[];
   jobAdSupplied: boolean;
+  /** Optional: only used to explain conflicts (e.g. a popular site that is flagged). */
+  webCheck?: WebCheckCheck;
 }
+
+/** Sites ranked at or above this Tranco position are treated as "widely visited" in explanations. */
+const POPULAR_RANK = 100_000;
 
 const AI_SOURCES = new Set(['url_ai', 'job_ad_ai']);
 
@@ -130,6 +136,12 @@ function conflicts(
   ) {
     out.push(
       `Security vendors flag this link even though the domain has been registered for about ${Math.floor(age / 365)} years. Long-established sites can be compromised or misclassified, so the specific page may be harmful even if the organisation is genuine.`,
+    );
+  }
+  const rank = input.webCheck?.rank?.position;
+  if (rank !== undefined && rank <= POPULAR_RANK && RANK[link] >= RANK.suspicious) {
+    out.push(
+      `This site is among the most visited on the internet (Tranco rank #${rank.toLocaleString('en-US')}), yet checks found warning signs. Popular platforms can host harmful pages or user-posted content, so judge the specific page and offer rather than the site's reputation.`,
     );
   }
   if (offer && RANK[offer] >= RANK.suspicious && link === 'no_significant_threats') {

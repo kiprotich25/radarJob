@@ -6,6 +6,7 @@ export const CHECK_LABELS: Record<keyof AnalysisReport['checks'], string> = {
   urlHeuristics: 'Link structure (impersonation, look-alike names)',
   virustotal: 'URL reputation (VirusTotal)',
   domain: 'Domain registration',
+  webCheck: 'Threat feeds, DNS filters & certificate (Web-Check)',
   page: 'Webpage content',
   urlAi: 'AI-assisted link analysis',
   jobAd: 'Job text red flags',
@@ -15,6 +16,7 @@ const ORDER: Array<keyof AnalysisReport['checks']> = [
   'urlHeuristics',
   'virustotal',
   'domain',
+  'webCheck',
   'page',
   'urlAi',
   'jobAd',
@@ -41,6 +43,8 @@ export function AnalysisProgress({
       <ul aria-live="polite" className="divide-y divide-rule">
         {ORDER.map((k) => {
           const c = report.checks[k];
+          // Older saved reports predate some checks; hide checks the server has turned off.
+          if (!c || (k === 'webCheck' && c.status === 'not_configured')) return null;
           return (
             <li
               key={k}

@@ -55,6 +55,20 @@ export const EnvSchema = z
     PAGE_INSPECTION_MAX_BYTES: int(1_000_000, 10_000, 5_000_000),
     PAGE_INSPECTION_MAX_REDIRECTS: int(5, 0, 10),
 
+    /**
+     * Web-Check (https://github.com/Lissy93/web-check): threat feeds, security DNS block lists,
+     * TLS certificate and popularity rank. The public web-check.xyz instance is heavily
+     * rate-limited, so point WEBCHECK_API_URL at a self-hosted instance for real use.
+     */
+    WEBCHECK_ENABLED: bool(false),
+    WEBCHECK_API_URL: z
+      .string()
+      .url()
+      .default('https://web-check.xyz')
+      .transform((v) => v.replace(/\/+$/, '').replace(/\/api$/, '')),
+    WEBCHECK_TIMEOUT_MS: int(20000, 1000, 60000),
+    WEBCHECK_CACHE_TTL_MINUTES: int(60, 0, 24 * 60),
+
     ANALYSIS_RATE_LIMIT_PER_HOUR: int(20, 1, 10000),
     ANALYSIS_MAX_CONCURRENT: int(4, 1, 100),
     ANALYSIS_MAX_QUEUED: int(20, 0, 1000),

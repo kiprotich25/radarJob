@@ -19,7 +19,11 @@ import {
   type ReportStore,
 } from './analysis/report-store';
 import { defaultFetch, type FetchLike } from './common/http';
-import { MockDomainIntelProvider, MockReputationProvider } from './common/mock-providers';
+import {
+  MockDomainIntelProvider,
+  MockReputationProvider,
+  MockWebCheckProvider,
+} from './common/mock-providers';
 import { DEFAULT_MODELS, ENV, type Env } from './config/env';
 import {
   DOMAIN_INTEL_PROVIDER,
@@ -41,6 +45,12 @@ import {
 import { systemResolver, type Resolver } from './page-inspection/ssrf-guard';
 import { REPUTATION_PROVIDER, type ReputationProvider } from './virustotal/reputation.provider';
 import { VirusTotalService } from './virustotal/virustotal.service';
+import {
+  DisabledWebCheckProvider,
+  WEBCHECK_PROVIDER,
+  WebCheckService,
+  type WebCheckProvider,
+} from './webcheck/webcheck.service';
 
 /** Optional replacements used by tests (fake HTTP, fake DNS, fake providers). */
 export interface AppOverrides {
@@ -50,6 +60,7 @@ export interface AppOverrides {
   domainIntel?: DomainIntelProvider;
   pageInspector?: PageInspector;
   ai?: AiService;
+  webCheck?: WebCheckProvider;
   store?: ReportStore;
 }
 
@@ -121,6 +132,17 @@ export function buildAi(env: Env, fetchImpl: FetchLike): AiService {
   );
 }
 
+export function buildWebCheck(env: Env, fetchImpl: FetchLike): WebCheckProvider {
+  if (!env.WEBCHECK_ENABLED) return new DisabledWebCheckProvider();
+  if (env.DEV_MOCK_PROVIDERS) return new MockWebCheckProvider();
+  return new WebCheckService({
+    baseUrl: env.WEBCHECK_API_URL,
+    timeoutMs: env.WEBCHECK_TIMEOUT_MS,
+    cacheTtlMs: env.WEBCHECK_CACHE_TTL_MINUTES * 60_000,
+    fetchImpl,
+  });
+}
+
 export function buildPageInspector(env: Env, resolver: Resolver): PageInspector {
   if (!env.PAGE_INSPECTION_ENABLED) return new DisabledPageInspector();
   return new SafePageInspector({
@@ -157,6 +179,10 @@ export class AppModule {
         useValue: overrides.domainIntel ?? buildDomainIntel(env, fetchImpl),
       },
       { provide: AI_SERVICE, useValue: overrides.ai ?? buildAi(env, fetchImpl) },
+      {
+        provide: WEBCHECK_PROVIDER,
+        useValue: overrides.webCheck ?? buildWebCheck(env, fetchImpl),
+      },
       {
         provide: PAGE_INSPECTOR,
         useValue:
