@@ -83,9 +83,9 @@ export function domainIndicators(domain: DomainCheck, rules: RiskRules): Indicat
       whyItMatters:
         'Scam sites are often set up shortly before use and abandoned quickly. A new domain also has little reputation history, so security vendors may not have assessed it yet.',
       basis: 'observed',
-      severity: 'weak',
+      severity: 'moderate',
       limitations:
-        'New businesses and new campaign sites are also recently registered. Domain age alone does not indicate fraud.',
+        'New businesses and new campaign sites are also recently registered, so treat this as a reason for extra caution rather than proof of fraud.',
     });
   }
   if (d.redacted) {

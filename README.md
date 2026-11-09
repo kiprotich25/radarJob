@@ -159,7 +159,8 @@ Rules live in `apps/api/src/risk-assessment` (`rules.config.ts` holds the thresh
 
 - Any **strong** evidence (≥3 malicious vendor verdicts, a homograph look-alike of a known brand, a password form on an impersonating page, PIN/OTP fields) → **Potentially malicious**.
 - **Warning** evidence from ≥2 independent non-AI sources → **Potentially malicious**; from one source → **Suspicious**.
-- ≥3 minor signals → **Suspicious**. A new domain alone is a minor signal only.
+- ≥3 minor signals → **Suspicious**.
+- A domain registered less than 30 days ago is a red flag (moderate) → **Suspicious** on its own.
 - An address or page title that presents itself as Kenyan government outside `.go.ke` is **warning** evidence, so on its own it gives **Suspicious**, not **Potentially malicious**. Some public bodies use other endings, such as `.or.ke` or `.ac.ke`.
 - No signals and VirusTotal completed → **No significant threats detected** (with a "not a guarantee" note).
 - VirusTotal not completed and nothing else found → **Inconclusive**.

@@ -83,10 +83,10 @@ describe('risk engine — specification scenarios', () => {
     expect(a.conflicts.join(' ')).toMatch(/compromised or misclassified/);
   });
 
-  it('C: new domain with nothing else → not malicious (no significant threats)', () => {
+  it('C: new domain with nothing else → suspicious, but not malicious', () => {
     const a = run(vtClean, domainNew, 'https://acme-jobs.example.com/');
-    expect(a.category).toBe('no_significant_threats');
-    expect(a.reasons.join(' ')).toMatch(/minor signals/);
+    expect(a.category).toBe('suspicious');
+    expect(a.reasons.join(' ')).toMatch(/registered only 4 day/);
   });
 
   it('D: VirusTotal unavailable → inconclusive, never treated as clean', () => {
@@ -152,7 +152,7 @@ describe('risk engine — rules', () => {
   });
 
   it('three weak signals together warrant caution', () => {
-    const a = run(vtClean, domainNew, 'http://acme-recruit-jobs-portal-now.xyz/');
+    const a = run(vtClean, domainOld, 'http://acme-recruit-jobs-portal-now.xyz/');
     expect(a.category).toBe('suspicious');
   });
 
@@ -181,9 +181,9 @@ describe('risk engine — rules', () => {
 });
 
 describe('domain age', () => {
-  it('only creates a weak new-domain indicator', () => {
+  it('flags a newly registered domain as a moderate red flag', () => {
     const i = domainIndicators(domainNew, DEFAULT_RULES);
-    expect(i.find((x) => x.category === 'new_domain')?.severity).toBe('weak');
+    expect(i.find((x) => x.category === 'new_domain')?.severity).toBe('moderate');
     expect(i.find((x) => x.category === 'registration_redacted')?.severity).toBe('info');
   });
 });

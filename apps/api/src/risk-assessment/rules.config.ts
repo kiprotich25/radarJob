@@ -15,7 +15,7 @@ export interface RiskRules {
     suspiciousCountForWeak: number;
   };
   domain: {
-    /** Domains younger than this many days produce a weak "new domain" signal. */
+    /** Domains younger than this many days produce a moderate "new domain" red flag. */
     newDomainDays: number;
     /** Domains older than this are treated as "long established" when explaining conflicts. */
     establishedDays: number;
@@ -34,7 +34,7 @@ export interface RiskRules {
 }
 
 export const DEFAULT_RULES: RiskRules = {
-  version: '2026.11-1',
+  version: '2026.11-2',
   virustotal: { strongMaliciousCount: 3, moderateMaliciousCount: 1, suspiciousCountForWeak: 1 },
   domain: { newDomainDays: 30, establishedDays: 3 * 365 },
   webcheck: { securityResolversForModerate: 2 },
