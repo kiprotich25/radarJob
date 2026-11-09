@@ -10,7 +10,7 @@ const SOURCE_LABELS: Record<Indicator['source'], string> = {
   page: 'Page inspection',
   job_ad: 'Job text rules',
   job_ad_ai: 'AI-assisted text review',
-  webcheck: 'Threat feeds & DNS filters (Web-Check)',
+  webcheck: 'Threat feeds & DNS filters',
 };
 
 const ORDER = { strong: 0, moderate: 1, weak: 2, info: 3 } as const;

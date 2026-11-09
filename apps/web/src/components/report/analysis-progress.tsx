@@ -6,7 +6,7 @@ export const CHECK_LABELS: Record<keyof AnalysisReport['checks'], string> = {
   urlHeuristics: 'Link structure (impersonation, look-alike names)',
   virustotal: 'URL reputation (VirusTotal)',
   domain: 'Domain registration',
-  webCheck: 'Threat feeds, DNS filters & certificate (Web-Check)',
+  webCheck: 'Threat feeds, DNS filters & certificate',
   page: 'Webpage content',
   urlAi: 'AI-assisted link analysis',
   jobAd: 'Job text red flags',
