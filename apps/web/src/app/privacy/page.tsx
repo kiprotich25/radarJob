@@ -30,12 +30,8 @@ export default function PrivacyPage() {
           HTTPS certificate.
         </li>
         <li>
-          If page inspection is enabled, our server downloads the page once, without running scripts
-          or submitting forms.
-        </li>
-        <li>
           If an AI provider is configured, the link&apos;s host and path (not the part after “?”)
-          and a short, redacted excerpt of the page are sent to it.
+          are sent to it.
         </li>
         <li>
           The report stored on our server contains the website address without its query string, the

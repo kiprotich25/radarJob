@@ -76,11 +76,6 @@ const PATTERNS = [
 //     'Based on the address only, not the page content.',
 //   ],
 //   [
-//     'Page content',
-//     'Where enabled: password or PIN fields, payment requests and fake branding — fetched safely, without running scripts.',
-//     'Some sites block automated visits or change later.',
-//   ],
-//   [
 //     'Job advert text',
 //     'Fees, unrealistic pay, urgency, secrecy, and requests for PINs or ID documents in a message you paste.',
 //     'Text without red flags can still be a scam.',

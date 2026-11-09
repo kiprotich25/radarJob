@@ -74,10 +74,6 @@ export default function AboutPage() {
           impersonated, plus checks for look-alike characters and other tricks.
         </li>
         <li>
-          <strong>Page inspection</strong> (when enabled on the server) — a single, script-free
-          download of the page through a network guard that refuses internal addresses.
-        </li>
-        <li>
           <strong>Job-text rules and AI review</strong> — recognisable red flags, each shown with
           the exact words that triggered it.
         </li>

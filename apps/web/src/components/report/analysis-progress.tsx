@@ -17,7 +17,6 @@ const ORDER: Array<keyof AnalysisReport['checks']> = [
   'virustotal',
   'domain',
   'webCheck',
-  'page',
   'urlAi',
   'jobAd',
 ];
