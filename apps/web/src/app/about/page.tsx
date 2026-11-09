@@ -92,7 +92,7 @@ export default function AboutPage() {
       
         <p className="mt-3">
           Drop your question, suggestions or feedback {' '}
-          <a className="text-signal underline" href={``}>
+          <a className="text-signal underline" href={`https://code-blooded-glitch.github.io/CodeBlooded/`}>
               here
           </a>
           .
